@@ -1,0 +1,46 @@
+FormattingDict is a superclass of the Python dictionary which can retrieve string values in a more advanced fashion. When retrieving a value, the key can contain not only the dictionary key to look for, but a list of alternative keys to try and a list of string transformations to perform on the retrieved value before returning it.
+
+An extended key as used by FormattingDict is of the form:
+
+    key1|key1|...|keyN:trans1:trans2:..:transN 
+
+Where key1 to keyN are alternative keys to try, and trans1 to transN are transforms to apply to the retrieved result. Strictly speaking, everything before the first colon is a key or part of alternate keys, whereas everything afterward is a chain of transformations, separated by colons. If any alternative key starts and ends with the same quote character, that key always will return whatever is inside the quotes. If the key part ends with a '|' (i.e., 'name|id|' or 'name|id|:lower', then if none of the alternative keys matches, the result is returned as an empty string; otherwise, a KeyError is raised.
+
+See the Python documentation strings for a list of valid transformations. 
+
+Example:
+
+    >>> fd = FormattingDict(name='Barton Burch', uname='bartb')
+    >>> fd['name']
+    'Barton Burch'
+    >>> fd['name:lower']
+    'barton burch'
+    >>> fd['uname|name']
+    'bartb'
+    >>> fd['nickname|name']
+    'Barton Burch'
+    >>> fd['nickname|']
+    ''
+    >>> fd['nickname|name:upper']
+    'BARTON BURCH'
+    >>> fd['nickname']='Nigel'
+    >>> fd['nickname|name:upper']
+    'NIGEL'
+    >>> fd['age|"Unknown"']
+    'Unknown'
+
+One application of FormattingDict is for use with templating systems, such as Python's % operator or various template languages which accept arguments in dictionaries. I.e.,
+
+    >>> "Name: %(name|uname)s"%fd
+    'Name: Barton Burch'
+
+For example, FormattingDict can be used for automatically processing strings into forms suitable for web links, as below:
+
+    >>> fd['artist'] = "I'm From Barcelona"
+    >>> link = '<a href="http://last.fm/music/%(artist:urlquote+)s">%(artist)s</a>'%fd
+    >>> print link
+    <a href="http://last.fm/music/I%27m+From+Barcelona">I'm From Barcelona</a>
+
+
+
+
